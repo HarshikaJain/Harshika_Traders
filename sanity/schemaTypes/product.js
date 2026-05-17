@@ -23,32 +23,42 @@ export default {
       },
     },
     {
-      name: 'price',
-      type: 'string',
-      title: 'Price (₹)',
-    },
-    {
-  name: 'images',
-  title: 'Product Images',
-  type: 'array',
-  of: [
-    {
-      type: 'image',
-      options: {
-        hotspot: true,
-      },
-      fields: [
+      name: 'variants',
+      title: 'Product Variants (Color, Storage, Price)',
+      type: 'array',
+      description: 'Add different versions of the product here (e.g., Blue 128GB, Blue 512GB)',
+      of: [
         {
-          name: 'alt',
-          type: 'string',
-          title: 'Alternative Text',
-          description: 'Important for SEO and accessibility.',
+          type: 'object',
+          name: 'variant',
+          fields: [
+            { name: 'color', type: 'string', title: 'Color' },
+            { name: 'storage', type: 'string', title: 'Storage (e.g., 128GB or 8GB RAM)' },
+            { name: 'price', type: 'number', title: 'Price (₹)' },
+            { 
+              name: 'variantImage', 
+              type: 'image', 
+              title: 'Variant Image',
+              options: { hotspot: true }
+            }
+          ],
+          preview: {
+            select: {
+              title: 'color',
+              subtitle: 'storage',
+              media: 'variantImage'
+            },
+            prepare({ title, subtitle, media }) {
+              return {
+                title: `${title || 'No Color'} - ${subtitle || 'No Storage'}`,
+                media
+              }
+            }
+          }
         }
-      ]
-    }
-  ],
-  validation: (Rule) => Rule.required().min(1).error('At least one product image is required.'),
-},
+      ],
+      validation: (Rule) => Rule.required().min(1).error('You must add at least one variant.')
+    },
     {
       name: 'description',
       type: 'text',
