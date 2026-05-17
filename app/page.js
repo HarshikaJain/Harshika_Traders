@@ -13,14 +13,17 @@ export default function Home() {
     async function getProducts() {
       // This query specifically pulls the first variant's image and price
       const query = `*[_type == "product"]{
-        _id,
-        name,
-        slug,
-        "defaultVariant": variants[0]{
-          price,
-          variantImage
-        }
-      }`;
+  _id,
+  name,
+  slug,
+  variants[]{
+    price,
+    variantImage,
+    colorName,
+    colorCode
+  }
+}`;
+
       const data = await client.fetch(query);
       setProducts(data);
       setLoading(false);
