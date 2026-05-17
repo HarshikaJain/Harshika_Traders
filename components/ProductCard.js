@@ -4,25 +4,26 @@ import Link from 'next/link';
 import { urlFor } from '../sanity/lib/image';
 
 export default function ProductCard({ product }) {
-  // 1. Logic to handle both old static paths and new Sanity image objects
+  // 1. Logic to handle the new Variants structure
+  // We grab the first variant to show as the "default" on the card
+  const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+
   let imageUrl = '/placeholder.jpg';
   
-  if (product.image) {
-    if (typeof product.image === 'string') {
-      // Old static data (e.g., '/assets/iphone17pro.webp')
-      imageUrl = product.image;
-    } else if (product.image.asset || product.image._ref) {
-      // New Sanity data
-      try {
-        imageUrl = urlFor(product.image).url();
-      } catch (error) {
-        console.error("Sanity Image Error:", error);
-      }
+  if (defaultVariant && defaultVariant.variantImage) {
+    // Show image from the first variant
+    try {
+      imageUrl = urlFor(defaultVariant.variantImage).url();
+    } catch (error) {
+      console.error("Sanity Image Error:", error);
     }
+  } else if (product.image) {
+    // Fallback for old static images or top-level images
+    imageUrl = typeof product.image === 'string' ? product.image : urlFor(product.image).url();
   }
 
-  // 2. Logic to handle price field naming differences
-  const displayPrice = product.price || product.basePrice;
+  // 2. Logic to handle price from the variant
+  const displayPrice = defaultVariant ? defaultVariant.price : (product.price || "Contact for Price");
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 border border-slate-100 dark:border-slate-800 product-card-shadow hover:shadow-2xl hover:border-blue-200 dark:hover:border-blue-900/30 transition-all group relative overflow-hidden">
@@ -51,7 +52,7 @@ export default function ProductCard({ product }) {
           )}
         </div>
 
-        {/* Use _id for Sanity products, or id for static products */}
+        {/* Use _id for Sanity products. Using the slug or ID to link to detail page */}
         <Link href={`/products/${product._id || product.id}`}>
           <button className="w-full py-4 rounded-2xl bg-slate-900 dark:bg-blue-600 text-white font-black uppercase text-[10px] tracking-widest hover:bg-blue-600 dark:hover:bg-blue-500 transition-all active:scale-95 shadow-lg">
             View Details
