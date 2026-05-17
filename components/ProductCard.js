@@ -1,64 +1,55 @@
 "use client";
-import React from 'react';
-import Link from 'next/link';
-import { urlFor } from '../sanity/lib/image';
+import React, { useState, useEffect } from 'react';
+import { client } from '../sanity/lib/client';
+import Hero from '../components/Hero';
+import BrandMarquee from '../components/BrandMarquee';
+import ProductCard from '../components/ProductCard';
 
-export default function ProductCard({ product }) {
-  // 1. Logic to handle the new Variants structure
-  // We grab the first variant to show as the "default" on the card
-  const defaultVariant = product.variants && product.variants.length > 0 ? product.variants[0] : null;
+export default function Home() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  let imageUrl = '/placeholder.jpg';
-  
-  if (defaultVariant && defaultVariant.variantImage) {
-    // Show image from the first variant
-    try {
-      imageUrl = urlFor(defaultVariant.variantImage).url();
-    } catch (error) {
-      console.error("Sanity Image Error:", error);
+  useEffect(() => {
+    async function getProducts() {
+      // This query pulls the variants array which the ProductCard needs
+      const query = `*[_type == "product"]{
+        _id,
+        name,
+        slug,
+        variants[]{
+          price,
+          variantImage,
+          colorName
+        }
+      }`;
+      const data = await client.fetch(query);
+      setProducts(data);
+      setLoading(false);
     }
-  } else if (product.image) {
-    // Fallback for old static images or top-level images
-    imageUrl = typeof product.image === 'string' ? product.image : urlFor(product.image).url();
-  }
-
-  // 2. Logic to handle price from the variant
-  const displayPrice = defaultVariant ? defaultVariant.price : (product.price || "Contact for Price");
+    getProducts();
+  }, []);
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 border border-slate-100 dark:border-slate-800 product-card-shadow hover:shadow-2xl hover:border-blue-200 dark:hover:border-blue-900/30 transition-all group relative overflow-hidden">
-      {/* Visual Badge */}
-      <div className="absolute top-6 left-6 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 rounded-full z-10">
-        <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">New Arrival</span>
-      </div>
+    <main className="relative min-h-screen bg-background overflow-hidden">
+      <Hero />
+      <BrandMarquee />
 
-      <div className="relative h-64 mb-6 mt-4 select-none flex items-center justify-center">
-        <img 
-          src={imageUrl} 
-          alt={product.name}
-          className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-500"
-        />
-      </div>
-
-      <div className="text-center">
-        <h3 className="font-black text-slate-900 dark:text-white mb-2 text-xl tracking-tight truncate">
-          {product.name}
-        </h3>
+      <section className="max-w-7xl mx-auto p-6 mt-12 pb-24 relative z-10">
+        <h2 className="text-4xl font-black text-slate-900 tracking-tighter mb-12">Latest Models</h2>
         
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <span className="text-2xl font-black text-blue-600 dark:text-blue-400">₹{displayPrice}</span>
-          {product.originalPrice && (
-            <span className="text-sm text-slate-400 line-through font-bold">₹{product.originalPrice}</span>
-          )}
-        </div>
-
-        {/* Use _id for Sanity products. Using the slug or ID to link to detail page */}
-        <Link href={`/products/${product._id || product.id}`}>
-          <button className="w-full py-4 rounded-2xl bg-slate-900 dark:bg-blue-600 text-white font-black uppercase text-[10px] tracking-widest hover:bg-blue-600 dark:hover:bg-blue-500 transition-all active:scale-95 shadow-lg">
-            View Details
-          </button>
-        </Link>
-      </div>
-    </div>
+        {loading ? (
+          <div className="text-center py-20 font-bold text-slate-400">Loading Latest Tech...</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {products.map((product) => (
+              <ProductCard 
+                key={product._id} 
+                product={product} 
+              />
+            ))}
+          </div>
+        )}
+      </section>
+    </main>
   );
 }
