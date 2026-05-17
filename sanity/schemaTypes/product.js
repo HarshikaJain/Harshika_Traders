@@ -7,7 +7,6 @@ export default {
       name: 'name',
       type: 'string',
       title: 'Product Name',
-      description: 'Example: iPhone 17 Pro or HP Victus',
     },
     {
       name: 'category',
@@ -24,40 +23,44 @@ export default {
     },
     {
       name: 'variants',
-      title: 'Product Variants (Color, Storage, Price)',
+      title: 'Product Variants',
       type: 'array',
-      description: 'Add different versions of the product here (e.g., Blue 128GB, Blue 512GB)',
       of: [
         {
           type: 'object',
           name: 'variant',
           fields: [
             { name: 'color', type: 'string', title: 'Color' },
-            { name: 'storage', type: 'string', title: 'Storage (e.g., 128GB or 8GB RAM)' },
-            { name: 'price', type: 'number', title: 'Price (₹)' },
+            { name: 'storage', type: 'string', title: 'Storage' },
+            { 
+              name: 'price', 
+              type: 'string', 
+              title: 'Price (₹)',
+              description: 'e.g. 1,49,900'
+            },
             { 
               name: 'variantImage', 
               type: 'image', 
-              title: 'Variant Image',
+              title: 'Image',
               options: { hotspot: true }
             }
           ],
           preview: {
             select: {
               title: 'color',
-              subtitle: 'storage',
+              subtitle: 'price',
               media: 'variantImage'
             },
             prepare({ title, subtitle, media }) {
               return {
-                title: `${title || 'No Color'} - ${subtitle || 'No Storage'}`,
+                title: `${title || 'No Color'}`,
+                subtitle: subtitle ? `₹${subtitle}` : 'No Price',
                 media
               }
             }
           }
         }
       ],
-      validation: (Rule) => Rule.required().min(1).error('You must add at least one variant.')
     },
     {
       name: 'description',
