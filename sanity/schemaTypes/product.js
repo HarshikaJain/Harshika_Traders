@@ -28,11 +28,27 @@ export default {
       title: 'Price (₹)',
     },
     {
-      name: 'image',
+  name: 'images',
+  title: 'Product Images',
+  type: 'array',
+  of: [
+    {
       type: 'image',
-      title: 'Product Photo',
-      options: { hotspot: true }, // Allows cropping directly in the dashboard
-    },
+      options: {
+        hotspot: true,
+      },
+      fields: [
+        {
+          name: 'alt',
+          type: 'string',
+          title: 'Alternative Text',
+          description: 'Important for SEO and accessibility.',
+        }
+      ]
+    }
+  ],
+  validation: (Rule) => Rule.required().min(1).error('At least one product image is required.'),
+},
     {
       name: 'description',
       type: 'text',
