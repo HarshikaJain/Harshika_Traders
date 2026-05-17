@@ -1,0 +1,27 @@
+{
+  "name": "harshika-traders",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@sanity/client": "^7.22.0",
+    "@sanity/image-url": "^2.1.1",
+    "@sanity/vision": "^5.25.1",
+    "@tailwindcss/postcss": "^4.2.4",
+    "lucide-react": "latest",
+    "next": "^16.2.5",
+    "next-sanity": "^12.4.5",
+    "next-themes": "latest",
+    "postcss": "^8.5.14",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "sanity": "^5.25.1",
+    "styled-components": "^6.4.1",
+    "tailwindcss": "^4.2.4"
+  }
+}
