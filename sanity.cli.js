@@ -2,7 +2,10 @@ import { defineCliConfig } from 'sanity/cli'
 
 export default defineCliConfig({ 
   api: { 
-    projectId: 'jcpsiivn', // Your active project ID from the dashboard
+    projectId: 'jcpsiivn', 
     dataset: 'production' 
-  } 
+  },
+  deployment: {
+    appId: 'x2c716vx5mqs4u5518imvyoj'
+  }
 })
