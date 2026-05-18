@@ -14,9 +14,11 @@ import {schema} from './sanity/schemaTypes'
 import {structure} from './sanity/structure'
 
 export default defineConfig({
-  basePath: '/admin',
-  projectId,
-  dataset,
+  name: 'default',
+  title: 'Harshika Traders',
+  projectId: 'jcpsiivn', // Update this
+  dataset: 'production',
+  // ... keep the rest of your plugins and schema setup identical
   // Add and edit the content schema in the './sanity/schemaTypes' folder
   schema,
   plugins: [
