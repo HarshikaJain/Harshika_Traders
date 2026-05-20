@@ -192,7 +192,7 @@ export default function ProductDetailClient({ product }) {
               onClick={handleWhatsAppOrder}
               className="w-full bg-[#111827] hover:bg-slate-800 text-white font-bold text-sm py-4 rounded-xl transition duration-150 shadow-md active:scale-[0.99] uppercase tracking-wider"
             >
-              Buy Now via WhatsApp Order
+              Buy Now
             </button>
           </div>
 
