@@ -30,6 +30,7 @@ export default function ProductDetailPage({ params }) {
         brand,
         images,
         rating,
+        description,
         variants[]{
           configuration,
           price,
@@ -125,7 +126,7 @@ export default function ProductDetailPage({ params }) {
           </h1>
           
           {/* Reactive Price Rendering Block */}
-          <div className="flex items-baseline space-x-4 mb-8">
+          <div className="flex items-baseline space-x-4 mb-4">
             <p className="text-4xl font-black text-slate-900 dark:text-white transition-all">
               ₹{currentVariant?.price ? currentVariant.price.toLocaleString('en-IN') : "Contact Store"}
             </p>
@@ -136,9 +137,18 @@ export default function ProductDetailPage({ params }) {
             )}
           </div>
 
+          {/* Product Description Prose Block */}
+          {product.description && (
+            <div className="prose dark:prose-invert mb-6">
+              <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-base">
+                {product.description}
+              </p>
+            </div>
+          )}
+
           {/* Interactive Storage and RAM Selection Grid */}
           {variants.length > 0 && (
-            <div className="mb-8">
+            <div className="mb-6">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Storage & RAM Options:</p>
               <div className="flex flex-wrap gap-2.5">
                 {variants.map((v, i) => (
