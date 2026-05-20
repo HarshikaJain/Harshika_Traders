@@ -12,6 +12,7 @@ export default function ProductDetailPage({ params }) {
   // Interactive client states
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
+  const [selectedColorIdx, setSelectedColorIdx] = useState(0);
 
   // 1. Unwrap the async params object safely
   useEffect(() => {
@@ -80,19 +81,53 @@ export default function ProductDetailPage({ params }) {
   
   const images = product.images || [];
   const activeImageUrl = images[selectedImageIdx] ? urlFor(images[selectedImageIdx]).url() : '/placeholder.jpg';
+  const colors = product.colors || [];
+
+  // Swipe handlers for the arrow controllers
+  const handlePrevImage = () => {
+    if (images.length === 0) return;
+    setSelectedImageIdx((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = () => {
+    if (images.length === 0) return;
+    setSelectedImageIdx((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
 
   return (
     <main className="min-h-screen bg-white dark:bg-slate-950 pt-24 px-6 pb-20 transition-colors">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         
-        {/* Left Column: Image Stack and Thumbnails View */}
+        {/* Left Column: Image Stack, Navigation Controls and Thumbnails View */}
         <div className="space-y-4">
-          <div className="bg-slate-50 dark:bg-slate-900 rounded-[3rem] p-8 flex items-center justify-center border border-slate-100 dark:border-slate-800 aspect-square relative">
+          <div className="bg-slate-50 dark:bg-slate-900 rounded-[3rem] p-8 flex items-center justify-center border border-slate-100 dark:border-slate-800 aspect-square relative group">
+            
+            {/* Image display element */}
             <img 
               src={activeImageUrl} 
               alt={displayTitle} 
               className="max-h-[420px] max-w-full object-contain transition-all duration-300"
             />
+
+            {/* Swipe Image Controls (< and > Icons) */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-700 text-slate-800 dark:text-white w-12 h-12 rounded-full flex items-center justify-center shadow-md font-black border border-slate-200 dark:border-slate-700 transition-all active:scale-90 select-none z-10"
+                  aria-label="Previous Image"
+                >
+                  &lt;
+                </button>
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-700 text-slate-800 dark:text-white w-12 h-12 rounded-full flex items-center justify-center shadow-md font-black border border-slate-200 dark:border-slate-700 transition-all active:scale-90 select-none z-10"
+                  aria-label="Next Image"
+                >
+                  &gt;
+                </button>
+              </>
+            )}
           </div>
 
           {/* Dynamic Image Thumbnails Navigation Stack */}
@@ -137,12 +172,39 @@ export default function ProductDetailPage({ params }) {
             )}
           </div>
 
-          {/* Product Description Prose Block */}
+          {/* Product Description Block (VISIBLE NOW) */}
           {product.description && (
-            <div className="prose dark:prose-invert mb-6">
+            <div className="prose dark:prose-invert mb-6 border-b border-slate-100 dark:border-slate-800/60 pb-4">
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-base">
                 {product.description}
               </p>
+            </div>
+          )}
+
+          {/* Interactive Color Selection Blocks (VISIBLE NOW) */}
+          {colors.length > 0 && (
+            <div className="mb-6">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Available Colors:</p>
+              <div className="flex flex-wrap gap-4 items-center">
+                {colors.map((color, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedColorIdx(i)}
+                    title={color.colorName}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition-all ${
+                      selectedColorIdx === i 
+                        ? 'border-slate-900 dark:border-white bg-slate-50 dark:bg-slate-800' 
+                        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'
+                    }`}
+                  >
+                    <span 
+                      className="w-4 h-4 rounded-full border border-black/10 inline-block shadow-inner" 
+                      style={{ backgroundColor: color.hexCode || '#ccc' }}
+                    />
+                    <span className="text-slate-700 dark:text-slate-300">{color.colorName}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -183,7 +245,7 @@ export default function ProductDetailPage({ params }) {
           )}
           
           {/* Checkout Redirection Trigger */}
-          <Link href={`/checkout/${product._id}?variant=${selectedVariantIdx}`}>
+          <Link href={`/checkout/${product._id}?variant=${selectedVariantIdx}&color=${selectedColorIdx}`}>
             <button className="w-full md:w-max px-14 py-5 rounded-2xl bg-slate-950 hover:bg-blue-600 dark:bg-slate-800 dark:hover:bg-blue-600 text-white font-black uppercase text-xs tracking-widest transition-all shadow-xl active:scale-95">
               Buy Now
             </button>
