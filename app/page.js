@@ -11,8 +11,8 @@ export default function Home() {
 
   useEffect(() => {
     async function getProducts() {
-      // Corrected query to use 'title' instead of 'name' and match your new layout schema fields
-      const query = `*[_type == "product"]{
+      // Query pulls both draft and published states, sorting drafts to the top
+      const query = `*[_type == "product"] | order(_id desc) {
         _id,
         title,
         slug,
@@ -28,7 +28,23 @@ export default function Home() {
 
       try {
         const data = await client.fetch(query);
-        setProducts(data);
+        
+        // Filter out duplicates so if a draft exists, we only show the draft version
+        const uniqueProducts = data.reduce((acc, current) => {
+          const isDraft = current._id.startsWith('drafts.');
+          const baseId = isDraft ? current._id.replace('drafts.', '') : current._id;
+          
+          const existingIndex = acc.findIndex(p => p._id.replace('drafts.', '') === baseId);
+          
+          if (existingIndex === -1) {
+            acc.push(current);
+          } else if (isDraft) {
+            acc[existingIndex] = current; // Prioritize the draft data content
+          }
+          return acc;
+        }, []);
+
+        setProducts(uniqueProducts);
       } catch (error) {
         console.error("Error fetching products from Sanity:", error);
       } finally {
