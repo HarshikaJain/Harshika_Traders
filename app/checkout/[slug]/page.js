@@ -21,16 +21,13 @@ export default function CheckoutPage() {
     pincode: ''
   });
 
-  // Extract precise configuration indexes from URL parameters
   const variantIdx = parseInt(searchParams.get('variant') || '0', 10);
   const colorIdx = parseInt(searchParams.get('color') || '0', 10);
 
   useEffect(() => {
-    // The folder is [slug], so Next.js stores it under params.slug
     if (!params?.slug) return;
 
     async function fetchCheckoutDetails() {
-      // Query looking up the item by _id since that's what's passed from details buttons
       const query = `*[_type == "product" && _id == $incomingId][0]{
         _id,
         title,
@@ -62,18 +59,30 @@ export default function CheckoutPage() {
     e.preventDefault();
     setLoading(true);
     
-    const finalPrice = product?.variants?.[variantIdx]?.price || 0;
+    const currentVariant = product?.variants?.[variantIdx] || product?.variants?.[0];
+    const currentColor = product?.colors?.[colorIdx] || product?.colors?.[0];
+    const finalPrice = currentVariant?.price || 0;
+    const itemTitle = product?.title || "Premium Item";
 
-    // Execution sequence of payment gateway redirect simulation
-    setTimeout(() => {
-      alert(`Handshaking Secure Channel...\nRedirecting ${formData.fullName} to Payment Gateway for ₹${finalPrice.toLocaleString('en-IN')}...`);
-      
-      setTimeout(() => {
-        setLoading(false);
-        alert("Payment Authorized Successfully! Your order has been registered at Harshika Traders.");
-        router.push('/');
-      }, 2000);
-    }, 1200);
+    // 1. Compose the message layout text block
+    const messageBody = `🚨 NEW ORDER RECEIVED - HARSHIKA TRADERS 🚨\n\n` +
+                        `📦 Item: ${itemTitle}\n` +
+                        `🔧 Config: ${currentVariant?.configuration || 'Base'}\n` +
+                        `🎨 Color: ${currentColor?.colorName || 'Default'}\n` +
+                        `💰 Total Price: ₹${finalPrice.toLocaleString('en-IN')}\n\n` +
+                        `👤 Customer: ${formData.fullName}\n` +
+                        `📞 Phone: ${formData.phone}\n` +
+                        `📍 Address: ${formData.address}, ${formData.city} - ${formData.pincode}`;
+
+    const targetNumber = process.env.NEXT_PUBLIC_FATHER_PHONE_NUMBER || "+919893100789";
+
+    // 2. Open WhatsApp click-to-chat web protocol directly from browser tab
+    const whatsappUrl = `https://wa.me/${targetNumber.replace('+', '')}?text=${encodeURIComponent(messageBody)}`;
+    window.open(whatsappUrl, '_blank');
+
+    setLoading(false);
+    alert("Order recorded locally! Opening WhatsApp communication receipt to notify administration logs.");
+    router.push('/');
   };
 
   if (fetching) {
@@ -84,7 +93,6 @@ export default function CheckoutPage() {
     );
   }
 
-  // Safe evaluations of properties
   const displayTitle = product?.title || "Premium Tech Unit";
   const currentVariant = product?.variants?.[variantIdx] || product?.variants?.[0];
   const currentColor = product?.colors?.[colorIdx] || product?.colors?.[0];
@@ -95,7 +103,7 @@ export default function CheckoutPage() {
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-24 px-6 pb-20 transition-colors">
       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         
-        {/* Shipping details input container panel (7 columns) */}
+        {/* Shipping Form Context Layout Column */}
         <div className="md:col-span-7 bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 md:p-10 shadow-xl border border-slate-100 dark:border-slate-800">
           <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tighter">CHECKOUT</h1>
           <p className="text-slate-500 font-bold mb-10 uppercase tracking-widest text-xs">Shipping & Delivery</p>
@@ -165,13 +173,13 @@ export default function CheckoutPage() {
                 type="submit"
                 className="w-full py-5 rounded-2xl bg-blue-600 text-white font-black uppercase text-xs tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95 disabled:opacity-50"
               >
-                {loading ? 'Processing Redirection...' : 'Proceed to Payment Gateway'}
+                {loading ? 'Confirming Order Verification...' : 'Place Order via WhatsApp'}
               </button>
             </div>
           </form>
         </div>
 
-        {/* Dynamic order summary box panel layout (5 columns) */}
+        {/* Sidebar Order Sticky Card Column */}
         <div className="md:col-span-5 bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 shadow-xl border border-slate-100 dark:border-slate-800 sticky top-24 space-y-6">
           <h3 className="text-lg font-black tracking-tight border-b border-slate-100 dark:border-slate-800/80 pb-3">Order Summary</h3>
           
