@@ -42,7 +42,7 @@ export default function ProductDetailPage({ params }) {
           colorName,
           hexCode
         },
-        highlights
+        highlights[]
       }`;
 
       try {
@@ -96,10 +96,10 @@ export default function ProductDetailPage({ params }) {
 
   return (
     <main className="min-h-screen bg-white dark:bg-slate-950 pt-24 px-6 pb-20 transition-colors">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
         
         {/* Left Column: Image Stack, Navigation Controls and Thumbnails View */}
-        <div className="space-y-4">
+        <div className="space-y-4 md:sticky top-24">
           <div className="bg-slate-50 dark:bg-slate-900 rounded-[3rem] p-8 flex items-center justify-center border border-slate-100 dark:border-slate-800 aspect-square relative group">
             
             {/* Image display element */}
@@ -137,7 +137,7 @@ export default function ProductDetailPage({ params }) {
                 <button
                   key={idx}
                   onClick={() => setSelectedImageIdx(idx)}
-                  className={`w-20 h-20 p-2 rounded-2xl bg-slate-50 dark:bg-slate-900 border transition-all flex items-center justify-center overflow-hidden ${
+                  className={`w-20 h-20 p-2 rounded-2xl bg-slate-50 dark:bg-slate-900 border transition-all flex items-center justify-center shrink-0 overflow-hidden ${
                     selectedImageIdx === idx 
                       ? 'border-blue-600 ring-2 ring-blue-600/20' 
                       : 'border-slate-100 dark:border-slate-800 hover:border-slate-300'
@@ -172,7 +172,7 @@ export default function ProductDetailPage({ params }) {
             )}
           </div>
 
-          {/* Product Description Block (VISIBLE NOW) */}
+          {/* Product Description Block */}
           {product.description && (
             <div className="prose dark:prose-invert mb-6 border-b border-slate-100 dark:border-slate-800/60 pb-4">
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-base">
@@ -181,7 +181,7 @@ export default function ProductDetailPage({ params }) {
             </div>
           )}
 
-          {/* Interactive Color Selection Blocks (VISIBLE NOW) */}
+          {/* Interactive Color Selection Blocks */}
           {colors.length > 0 && (
             <div className="mb-6">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Available Colors:</p>
@@ -230,17 +230,49 @@ export default function ProductDetailPage({ params }) {
             </div>
           )}
 
-          {/* Features / Bullet Highlights List */}
+          {/* Product Highlights Section with custom icon mapping */}
           {product.highlights && product.highlights.length > 0 && (
             <div className="mb-8 pt-6 border-t border-slate-100 dark:border-slate-800/80">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Key Specifications:</p>
-              <ul className="space-y-2.5">
-                {product.highlights.map((item, idx) => (
-                  <li key={idx} className="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-start">
-                    <span className="text-blue-500 mr-2.5 mt-0.5">✓</span> {item}
-                  </li>
-                ))}
-              </ul>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-4">
+                Product highlights
+              </h3>
+              
+              <div className="space-y-4">
+                {product.highlights.map((item, idx) => {
+                  // Fallback default icon
+                  let highlightIcon = "📱";
+                  const cleanText = item.toLowerCase();
+                  
+                  // Run evaluation matches for accurate graphics matching
+                  if (cleanText.includes('ram') || cleanText.includes('rom') || cleanText.includes('storage')) {
+                    highlightIcon = "🎛️";
+                  } else if (cleanText.includes('processor') || cleanText.includes('dimensity') || cleanText.includes('snapdragon') || cleanText.includes('core')) {
+                    highlightIcon = "🔲";
+                  } else if (cleanText.includes('rear camera')) {
+                    highlightIcon = "📸";
+                  } else if (cleanText.includes('front camera')) {
+                    highlightIcon = "📷";
+                  } else if (cleanText.includes('battery') || cleanText.includes('mah')) {
+                    highlightIcon = "🔋";
+                  } else if (cleanText.includes('inch') || cleanText.includes('display') || cleanText.includes('screen')) {
+                    highlightIcon = "📱";
+                  }
+
+                  return (
+                    <div key={idx} className="flex items-center gap-4">
+                      {/* Soft Rounded Icon Block Context Panel */}
+                      <div className="w-12 h-12 rounded-xl bg-blue-50/80 dark:bg-slate-900 flex items-center justify-center shrink-0 text-base border border-blue-100/40 dark:border-slate-800">
+                        {highlightIcon}
+                      </div>
+                      
+                      {/* Highlight Spec Text Label */}
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        {item}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
           
