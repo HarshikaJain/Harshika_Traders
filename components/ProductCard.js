@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { urlFor } from '../sanity/lib/image';
+import { urlFor } from '../sanity/lib/image'; // Clean reference mapper for image stacks
 
 export default function ProductCard({ product }) {
   if (!product) return null;
@@ -26,9 +26,15 @@ export default function ProductCard({ product }) {
     }
   }
 
-  // 2. Fallback normalization across historical database fields mapping
+  // 2. Dynamic Price Selection from multi-variant database blocks
+  // Pulls the first variant's pricing if available, fallback to legacy base field or 0
+  const firstVariant = product.variants && Array.isArray(product.variants) ? product.variants[0] : null;
+  
+  const displayPrice = firstVariant?.price || product.price || product.basePrice || 0;
+  const originalPrice = firstVariant?.originalPrice || product.originalPrice;
+
+  // 3. Fallback normalization across historical database fields mapping
   const productName = product.title || product.name || "Unnamed Product";
-  const displayPrice = product.price || product.basePrice || 0;
   const targetId = product.slug?.current || product._id || product.id;
 
   return (
@@ -71,9 +77,9 @@ export default function ProductCard({ product }) {
           <span className="text-2xl font-bold text-blue-600">
             ₹{displayPrice.toLocaleString('en-IN')}
           </span>
-          {product.originalPrice && (
+          {originalPrice && (
             <span className="text-sm text-slate-400 line-through font-medium">
-              ₹{product.originalPrice.toLocaleString('en-IN')}
+              ₹{originalPrice.toLocaleString('en-IN')}
             </span>
           )}
         </div>

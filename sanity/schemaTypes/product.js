@@ -36,7 +36,15 @@ export default {
       name: 'category',
       title: 'Category',
       type: 'string',
-      initialValue: 'Mobiles'
+      options: {
+        list: [
+          { title: 'Mobile', value: 'Mobile' },
+          { title: 'TV', value: 'TV' },
+          { title: 'AC', value: 'AC' },
+          { title: 'Hp laptop', value: 'Hp laptop' },
+        ],
+      },
+      validation: Rule => Rule.required()
     },
     {
       name: 'rating',
