@@ -6,16 +6,21 @@ export default async function CategoryPage({ params }) {
   const { slug } = await params;
   const categorySlug = decodeURIComponent(slug);
 
-  // Fetch products from Sanity matching the category
-  // We match category exactly as defined in your Sanity Schema
+  // Fetch products from Sanity matching the category with the updated schema structure
   const { data: products } = await sanityFetch({
-    query: `*[_type == "product" && category == $categorySlug]{
+    query: `*[_type == "product" && category == $categorySlug] | order(_id desc) {
       _id,
-      name,
-      price,
+      title,
+      slug,
+      images,
+      rating,
       category,
-      image,
-      description
+      variants[]{
+        configuration,
+        price,
+        originalPrice,
+        isAvailable
+      }
     }`,
     params: { categorySlug }
   });
@@ -35,7 +40,6 @@ export default async function CategoryPage({ params }) {
         {products && products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {products.map((product) => (
-              /* Note: We use _id from Sanity instead of id */
               <ProductCard key={product._id} product={product} />
             ))}
           </div>

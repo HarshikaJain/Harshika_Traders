@@ -11,42 +11,47 @@ export default function Home() {
 
   useEffect(() => {
     async function getProducts() {
-      // Query pulls both draft and published states, sorting drafts to the top
+      // Fetches the exact root values and configuration-based variation structures
       const query = `*[_type == "product"] | order(_id desc) {
         _id,
         title,
         slug,
         images,
         rating,
+        category,
+        brand,
         variants[]{
           configuration,
           price,
           originalPrice,
           isAvailable
+        },
+        colors[]{
+          colorName,
+          hexCode
         }
       }`;
 
       try {
         const data = await client.fetch(query);
         
-        // Filter out duplicates so if a draft exists, we only show the draft version
+        // Filter drafts correctly to display fresh modifications instantly
         const uniqueProducts = data.reduce((acc, current) => {
           const isDraft = current._id.startsWith('drafts.');
           const baseId = isDraft ? current._id.replace('drafts.', '') : current._id;
-          
           const existingIndex = acc.findIndex(p => p._id.replace('drafts.', '') === baseId);
           
           if (existingIndex === -1) {
             acc.push(current);
           } else if (isDraft) {
-            acc[existingIndex] = current; // Prioritize the draft data content
+            acc[existingIndex] = current;
           }
           return acc;
         }, []);
 
         setProducts(uniqueProducts);
       } catch (error) {
-        console.error("Error fetching products from Sanity:", error);
+        console.error("Sanity Fetch Error:", error);
       } finally {
         setLoading(false);
       }
@@ -56,11 +61,6 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen bg-background transition-colors overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[10%] right-[-5%] w-[40%] h-[40%] bg-indigo-600/5 rounded-full blur-[100px]" />
-      </div>
-
       <Hero />
       <BrandMarquee />
 
@@ -74,7 +74,6 @@ export default function Home() {
               Premium Tech in Ratlam
             </p>
           </div>
-          <div className="hidden md:block h-[1px] flex-grow mx-10 bg-gradient-to-r from-blue-600/50 to-transparent" />
         </div>
 
         {loading ? (
@@ -82,15 +81,11 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {products.map((product) => (
-              <ProductCard 
-                key={product._id} 
-                product={product} 
-              />
+              <ProductCard key={product._id} product={product} />
             ))}
           </div>
         )}
       </section>
-      <div className="w-full h-1 bg-gradient-to-r from-transparent via-blue-600 to-transparent opacity-20" />
     </main>
   );
 }
