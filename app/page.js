@@ -11,22 +11,29 @@ export default function Home() {
 
   useEffect(() => {
     async function getProducts() {
-      // This query specifically pulls the first variant's image and price
+      // Corrected query to use 'title' instead of 'name' and match your new layout schema fields
       const query = `*[_type == "product"]{
-  _id,
-  name,
-  slug,
-  variants[]{
-    price,
-    variantImage,
-    colorName,
-    colorCode
-  }
-}`;
+        _id,
+        title,
+        slug,
+        images,
+        rating,
+        variants[]{
+          configuration,
+          price,
+          originalPrice,
+          isAvailable
+        }
+      }`;
 
-      const data = await client.fetch(query);
-      setProducts(data);
-      setLoading(false);
+      try {
+        const data = await client.fetch(query);
+        setProducts(data);
+      } catch (error) {
+        console.error("Error fetching products from Sanity:", error);
+      } finally {
+        setLoading(false);
+      }
     }
     getProducts();
   }, []);
