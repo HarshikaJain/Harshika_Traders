@@ -42,7 +42,7 @@ export default function ProductDetailPage({ params }) {
           colorName,
           hexCode
         },
-        highlights[]
+        specialFeatures
       }`;
 
       try {
@@ -94,6 +94,8 @@ export default function ProductDetailPage({ params }) {
     setSelectedImageIdx((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
+  console.log("LOGGED PRODUCT DATA:", product);
+  
   return (
     <main className="min-h-screen bg-white dark:bg-slate-950 pt-24 px-6 pb-20 transition-colors">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
@@ -230,15 +232,15 @@ export default function ProductDetailPage({ params }) {
             </div>
           )}
 
-          {/* Product Highlights Section with custom icon mapping */}
-          {product.highlights && product.highlights.length > 0 && (
+          {/* Product Highlights Section with custom icon mapping aligned with specialFeatures */}
+          {product.specialFeatures && product.specialFeatures.length > 0 && (
             <div className="mb-8 pt-6 border-t border-slate-100 dark:border-slate-800/80">
               <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-4">
                 Product highlights
               </h3>
               
               <div className="space-y-4">
-                {product.highlights.map((item, idx) => {
+                {product.specialFeatures.map((item, idx) => {
                   // Fallback default icon
                   let highlightIcon = "📱";
                   const cleanText = item.toLowerCase();
