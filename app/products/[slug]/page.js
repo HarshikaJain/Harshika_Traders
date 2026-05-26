@@ -10,16 +10,16 @@ export default function ProductDetailPage({ params }) {
   const [loading, setLoading] = useState(true);
   
   // Interactive client states
+  const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
-  const [selectedColorIdx, setSelectedColorIdx] = useState(0);
 
   // 1. Unwrap the async params object safely
   useEffect(() => {
     params.then((res) => setUnwrappedParams(res));
   }, [params]);
 
-  // 2. Fetch the product details with client configuration live
+  // 2. Fetch the updated nested data structure from Sanity
   useEffect(() => {
     if (!unwrappedParams?.slug) return;
 
@@ -29,20 +29,20 @@ export default function ProductDetailPage({ params }) {
         title,
         category,
         brand,
-        images,
-        rating,
         description,
-        variants[]{
-          configuration,
-          price,
-          originalPrice,
-          isAvailable
-        },
+        rating,
         colors[]{
           colorName,
-          hexCode
-        },
-        specialFeatures
+          hexCode,
+          images,
+          variants[]{
+            configuration,
+            price,
+            originalPrice,
+            isAvailable,
+            specialFeatures
+          }
+        }
       }`;
 
       try {
@@ -57,6 +57,12 @@ export default function ProductDetailPage({ params }) {
 
     fetchDetails();
   }, [unwrappedParams]);
+
+  // 3. Reset variant and image indices when switching colors to prevent crashes
+  useEffect(() => {
+    setSelectedVariantIdx(0);
+    setSelectedImageIdx(0);
+  }, [selectedColorIdx]);
 
   if (loading) {
     return (
@@ -74,16 +80,25 @@ export default function ProductDetailPage({ params }) {
     );
   }
 
-  // Safe data evaluations
+  // --- Dynamic State Evaluation Engine ---
   const displayTitle = product.title || "Premium Model";
-  const variants = product.variants || [];
-  const currentVariant = variants[selectedVariantIdx];
-  
-  const images = product.images || [];
-  const activeImageUrl = images[selectedImageIdx] ? urlFor(images[selectedImageIdx]).url() : '/placeholder.jpg';
   const colors = product.colors || [];
+  
+  // Extract active color data block safely
+  const currentColorData = colors[selectedColorIdx] || {};
+  
+  // Extract images specific to this color block
+  const images = currentColorData.images || [];
+  const activeImageUrl = images[selectedImageIdx] ? urlFor(images[selectedImageIdx]).url() : '/placeholder.jpg';
+  
+  // Extract hardware configurations specific to this color block
+  const variants = currentColorData.variants || [];
+  const currentVariant = variants[selectedVariantIdx] || {};
+  
+  // Extract custom highlights specific to this selection
+  const specialFeatures = currentVariant.specialFeatures || [];
 
-  // Swipe handlers for the arrow controllers
+  // Gallery Navigation Controls
   const handlePrevImage = () => {
     if (images.length === 0) return;
     setSelectedImageIdx((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -100,18 +115,16 @@ export default function ProductDetailPage({ params }) {
     <main className="min-h-screen bg-white dark:bg-slate-950 pt-24 px-6 pb-20 transition-colors">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
         
-        {/* Left Column: Image Stack, Navigation Controls and Thumbnails View */}
+        {/* Left Column: Color-specific Image Stack */}
         <div className="space-y-4 md:sticky top-24">
           <div className="bg-slate-50 dark:bg-slate-900 rounded-[3rem] p-8 flex items-center justify-center border border-slate-100 dark:border-slate-800 aspect-square relative group">
             
-            {/* Image display element */}
             <img 
               src={activeImageUrl} 
-              alt={displayTitle} 
+              alt={`${displayTitle} - ${currentColorData.colorName}`} 
               className="max-h-[420px] max-w-full object-contain transition-all duration-300"
             />
 
-            {/* Swipe Image Controls (< and > Icons) */}
             {images.length > 1 && (
               <>
                 <button
@@ -132,7 +145,7 @@ export default function ProductDetailPage({ params }) {
             )}
           </div>
 
-          {/* Dynamic Image Thumbnails Navigation Stack */}
+          {/* Color-specific Thumbnails View */}
           {images.length > 1 && (
             <div className="flex gap-3 justify-center overflow-x-auto py-2">
               {images.map((img, idx) => (
@@ -152,7 +165,7 @@ export default function ProductDetailPage({ params }) {
           )}
         </div>
 
-        {/* Right Column: Dynamic Data Formats & Option Controls */}
+        {/* Right Column: Dynamic Specifications Controls */}
         <div className="flex flex-col justify-center">
           <span className="text-blue-600 dark:text-blue-400 font-black uppercase tracking-[0.3em] text-xs mb-3">
             {product.brand || "Premium"} / {product.category}
@@ -162,19 +175,18 @@ export default function ProductDetailPage({ params }) {
             {displayTitle}
           </h1>
           
-          {/* Reactive Price Rendering Block */}
+          {/* Dynamic Variant Pricing */}
           <div className="flex items-baseline space-x-4 mb-4">
             <p className="text-4xl font-black text-slate-900 dark:text-white transition-all">
-              ₹{currentVariant?.price ? currentVariant.price.toLocaleString('en-IN') : "Contact Store"}
+              ₹{currentVariant.price ? currentVariant.price.toLocaleString('en-IN') : "Contact Store"}
             </p>
-            {currentVariant?.originalPrice && (
+            {currentVariant.originalPrice && (
               <p className="text-xl text-slate-400 line-through">
                 ₹{currentVariant.originalPrice.toLocaleString('en-IN')}
               </p>
             )}
           </div>
 
-          {/* Product Description Block */}
           {product.description && (
             <div className="prose dark:prose-invert mb-6 border-b border-slate-100 dark:border-slate-800/60 pb-4">
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-base">
@@ -183,7 +195,7 @@ export default function ProductDetailPage({ params }) {
             </div>
           )}
 
-          {/* Interactive Color Selection Blocks */}
+          {/* Color Selection Buttons */}
           {colors.length > 0 && (
             <div className="mb-6">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Available Colors:</p>
@@ -210,10 +222,10 @@ export default function ProductDetailPage({ params }) {
             </div>
           )}
 
-          {/* Interactive Storage and RAM Selection Grid */}
+          {/* Storage and RAM Options Grid for Selected Color */}
           {variants.length > 0 && (
             <div className="mb-6">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Storage & RAM Options:</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Storage & RAM Options for this Color:</p>
               <div className="flex flex-wrap gap-2.5">
                 {variants.map((v, i) => (
                   <button 
@@ -232,20 +244,18 @@ export default function ProductDetailPage({ params }) {
             </div>
           )}
 
-          {/* Product Highlights Section with custom icon mapping aligned with specialFeatures */}
-          {product.specialFeatures && product.specialFeatures.length > 0 && (
+          {/* Dynamic Highlights Specific to Configuration Selection */}
+          {specialFeatures.length > 0 && (
             <div className="mb-8 pt-6 border-t border-slate-100 dark:border-slate-800/80">
               <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-4">
                 Product highlights
               </h3>
               
               <div className="space-y-4">
-                {product.specialFeatures.map((item, idx) => {
-                  // Fallback default icon
+                {specialFeatures.map((item, idx) => {
                   let highlightIcon = "📱";
                   const cleanText = item.toLowerCase();
                   
-                  // Run evaluation matches for accurate graphics matching
                   if (cleanText.includes('ram') || cleanText.includes('rom') || cleanText.includes('storage')) {
                     highlightIcon = "🎛️";
                   } else if (cleanText.includes('processor') || cleanText.includes('dimensity') || cleanText.includes('snapdragon') || cleanText.includes('core')) {
@@ -262,12 +272,9 @@ export default function ProductDetailPage({ params }) {
 
                   return (
                     <div key={idx} className="flex items-center gap-4">
-                      {/* Soft Rounded Icon Block Context Panel */}
                       <div className="w-12 h-12 rounded-xl bg-blue-50/80 dark:bg-slate-900 flex items-center justify-center shrink-0 text-base border border-blue-100/40 dark:border-slate-800">
                         {highlightIcon}
                       </div>
-                      
-                      {/* Highlight Spec Text Label */}
                       <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                         {item}
                       </p>
@@ -278,7 +285,7 @@ export default function ProductDetailPage({ params }) {
             </div>
           )}
           
-          {/* Checkout Redirection Trigger */}
+          {/* Checkout Redirection Trigger passing specific state index markers */}
           <Link href={`/checkout/${product._id}?variant=${selectedVariantIdx}&color=${selectedColorIdx}`}>
             <button className="w-full md:w-max px-14 py-5 rounded-2xl bg-slate-950 hover:bg-blue-600 dark:bg-slate-800 dark:hover:bg-blue-600 text-white font-black uppercase text-xs tracking-widest transition-all shadow-xl active:scale-95">
               Buy Now
