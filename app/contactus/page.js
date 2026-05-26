@@ -44,9 +44,51 @@ export default function ContactUs() {
                 <div>
                   <h4 className="font-black text-gray-900 dark:text-white text-sm uppercase">Email Us</h4>
                   <p className="text-gray-600 dark:text-gray-400 mt-1">harshika.ratlam@gmail.com</p>
-                  <p className="text-gray-600 dark:text-gray-400">Inquiries: info@harshikatraders.com</p>
                 </div>
               </div>
+
+            <div className="flex items-start gap-4">
+  <div className="bg-blue-600 p-3 rounded-xl text-white">
+    {/* Map/Pin Icon */}
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+  </div>
+  <div>
+    <h4 className="font-bold text-slate-900 dark:text-white text-sm">VISIT SHOP</h4>
+    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Harshika Traders, 13, Stadium Market, Do Batti Road, Ratlam, Madhya Pradesh</p>
+  </div>
+</div>
+
+{/* NEW: Facebook Integration */}
+<div className="flex items-start gap-4 mt-6">
+  <div className="bg-blue-700 p-3 rounded-xl text-white">
+    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
+    </svg>
+  </div>
+  <div>
+    <h4 className="font-bold text-slate-900 dark:text-white text-sm">FOLLOW ON FACEBOOK</h4>
+    <a href="https://facebook.com/harshikatraders" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline mt-0.5 block">
+      facebook.com/harshikatraders
+    </a>
+  </div>
+</div>
+
+{/* Instagram Integration */}
+<div className="flex items-start gap-4 mt-6">
+  <div className="bg-gradient-to-tr from-yellow-500 via-red-500 to-purple-600 p-3 rounded-xl text-white">
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+      <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"></path>
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+    </svg>
+  </div>
+  <div>
+    <h4 className="font-bold text-slate-900 dark:text-white text-sm">FOLLOW ON INSTAGRAM</h4>
+    <a href="https://www.instagram.com/harshikatraders_mobile/" target="_blank" rel="noopener noreferrer" className="text-xs text-pink-600 hover:underline mt-0.5 block">
+      instagram.com/harshikatraders_mobile
+    </a>
+  </div>
+</div>
 
               {/* Location */}
               <div className="flex items-start gap-4">
