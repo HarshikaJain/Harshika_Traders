@@ -4,7 +4,6 @@ import { client } from '../sanity/lib/client';
 import { urlFor } from '../sanity/lib/image';
 import Link from 'next/link';
 
-// Fetch products with deep nested structures
 async function getProducts() {
   const query = `*[_type == "product"] | order(_createdAt desc){
     _id,
@@ -12,13 +11,8 @@ async function getProducts() {
     brand,
     category,
     slug,
-    colors[]{
-      images,
-      variants[]{
-        price,
-        originalPrice
-      }
-    }
+    images,
+    variants
   }`;
   return await client.fetch(query, {}, { cache: 'no-store' });
 }
@@ -40,10 +34,8 @@ export default async function HomePage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {products.map((product) => {
-            // Extract baseline parameters safely across multi-nested variants
-            const firstColorBlock = product.colors?.[0] || {};
-            const firstImage = firstColorBlock.images?.[0];
-            const firstVariant = firstColorBlock.variants?.[0] || {};
+            const firstImage = product.images?.[0];
+            const firstVariant = product.variants?.[0] || {};
             
             const displayImageUrl = firstImage ? urlFor(firstImage).url() : '/placeholder.jpg';
             const displayPrice = firstVariant.price ? `₹${firstVariant.price.toLocaleString('en-IN')}` : 'View Setup';
@@ -54,7 +46,6 @@ export default async function HomePage() {
                 key={product._id} 
                 className="group flex flex-col bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-slate-800/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                {/* Product Image Wrapper */}
                 <div className="bg-slate-50 dark:bg-slate-950 rounded-2xl flex items-center justify-center p-6 aspect-square overflow-hidden border border-slate-100/50 dark:border-slate-900 relative">
                   <img 
                     src={displayImageUrl} 
@@ -63,7 +54,6 @@ export default async function HomePage() {
                   />
                 </div>
 
-                {/* Info block */}
                 <div className="mt-4 flex flex-col flex-grow">
                   <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
                     {product.brand}
@@ -75,7 +65,6 @@ export default async function HomePage() {
                     {product.category}
                   </p>
                   
-                  {/* Dynamic Pricing Footprint */}
                   <div className="mt-auto pt-4 border-t border-slate-50 dark:border-slate-800/40 flex items-center justify-between">
                     <span className="text-sm font-black text-slate-900 dark:text-white">
                       {displayPrice}
