@@ -1,91 +1,84 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { client } from '../sanity/lib/client';
-import Hero from '../components/Hero';
-import BrandMarquee from '../components/BrandMarquee';
-import ProductCard from '../components/ProductCard';
+import { urlFor } from '../sanity/lib/image';
+import Link from 'next/link';
 
-export default function Home() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+async function getProducts() {
+  const query = `*[_type == "product"] | order(_createdAt desc){
+    _id,
+    title,
+    brand,
+    category,
+    slug,
+    images,
+    variants
+  }`;
+  return await client.fetch(query, {}, { cache: 'no-store' });
+}
 
-  useEffect(() => {
-    async function getProducts() {
-      // Fetches the exact root values and configuration-based variation structures
-      const query = `*[_type == "product"] | order(_id desc) {
-        _id,
-        title,
-        slug,
-        images,
-        rating,
-        category,
-        brand,
-        variants[]{
-          configuration,
-          price,
-          originalPrice,
-          isAvailable
-        },
-        colors[]{
-          colorName,
-          hexCode
-        }
-      }`;
-
-      try {
-        const data = await client.fetch(query);
-        
-        // Filter drafts correctly to display fresh modifications instantly
-        const uniqueProducts = data.reduce((acc, current) => {
-          const isDraft = current._id.startsWith('drafts.');
-          const baseId = isDraft ? current._id.replace('drafts.', '') : current._id;
-          const existingIndex = acc.findIndex(p => p._id.replace('drafts.', '') === baseId);
-          
-          if (existingIndex === -1) {
-            acc.push(current);
-          } else if (isDraft) {
-            acc[existingIndex] = current;
-          }
-          return acc;
-        }, []);
-
-        setProducts(uniqueProducts);
-      } catch (error) {
-        console.error("Sanity Fetch Error:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    getProducts();
-  }, []);
+export default async function HomePage() {
+  const products = await getProducts();
 
   return (
-    <main className="relative min-h-screen bg-background transition-colors overflow-hidden">
-      <Hero />
-      <BrandMarquee />
-
-      <section className="max-w-7xl mx-auto p-6 mt-12 pb-24 relative z-10">
-        <div className="flex items-center justify-between mb-12">
-          <div className="space-y-1">
-            <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">
-              Latest Models
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm uppercase tracking-widest">
-              Premium Tech in Ratlam
-            </p>
-          </div>
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-28 px-6 pb-12">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-10 text-center md:text-left">
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            Latest Premium Devices
+          </h1>
+          <p className="text-sm text-slate-400 mt-2 font-medium">
+            Authorized tech configurations synced live with Harshika Traders database.
+          </p>
         </div>
 
-        {loading ? (
-          <div className="text-center py-20 font-bold text-slate-400">Loading Latest Tech...</div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {products.map((product) => (
-              <ProductCard key={product._id} product={product} />
-            ))}
-          </div>
-        )}
-      </section>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {products.map((product) => {
+            const firstImage = product.images?.[0];
+            const firstVariant = product.variants?.[0] || {};
+            
+            const displayImageUrl = firstImage ? urlFor(firstImage).url() : '/placeholder.jpg';
+            const displayPrice = firstVariant.price ? `₹${firstVariant.price.toLocaleString('en-IN')}` : 'View Setup';
+
+            return (
+              <Link 
+                href={`/products/${product.slug?.current}`} 
+                key={product._id} 
+                className="group flex flex-col bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-slate-800/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              >
+                <div className="bg-slate-50 dark:bg-slate-950 rounded-2xl flex items-center justify-center p-6 aspect-square overflow-hidden border border-slate-100/50 dark:border-slate-900 relative">
+                  <img 
+                    src={displayImageUrl} 
+                    alt={product.title} 
+                    className="max-h-full object-contain group-hover:scale-105 transition-transform duration-300" 
+                  />
+                </div>
+
+                <div className="mt-4 flex flex-col flex-grow">
+                  <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                    {product.brand}
+                  </span>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white mt-1 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {product.title}
+                  </h3>
+                  <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                    {product.category}
+                  </p>
+                  
+                  <div className="mt-auto pt-4 border-t border-slate-50 dark:border-slate-800/40 flex items-center justify-between">
+                    <span className="text-sm font-black text-slate-900 dark:text-white">
+                      {displayPrice}
+                    </span>
+                    <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2.5 py-1 rounded-lg">
+                      Explore →
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
     </main>
   );
 }
