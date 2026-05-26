@@ -12,8 +12,9 @@ import {structure} from './sanity/structure'
 export default defineConfig({
   name: 'default',
   title: 'Harshika Traders',
-  projectId: 'jcpsiivn', // Your exact valid Project ID
+  projectId: 'jcpsiivn', 
   dataset: 'production',
+  basePath: '/admin', // <-- ADD THIS EXACT LINE HERE
   schema,
   plugins: [
     structureTool({structure}),
