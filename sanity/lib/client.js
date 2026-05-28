@@ -1,7 +1,7 @@
 import { createClient } from 'next-sanity';
 
 export const client = createClient({
-  projectId: "jcpsiivn", // Your exact Project ID
+  projectId: "ovsFMwZlx", // Updated to match your active production project ID
   dataset: "production",
   apiVersion: "2024-03-11",
   useCdn: false, // Set to false to pull the latest un-cached changes instantly
