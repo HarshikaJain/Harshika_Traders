@@ -97,7 +97,7 @@ export default async function HomePage() {
                   </span>
                   {product.slug?.current && (
                     <Link href={`/products/${product.slug.current}`} className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 font-bold text-xs px-3 py-2 rounded-xl">
-                      View Setup
+                      View Details
                     </Link>
                   )}
                 </div>
