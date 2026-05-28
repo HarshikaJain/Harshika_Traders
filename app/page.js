@@ -30,29 +30,20 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-white dark:bg-slate-950 pt-32 px-6 max-w-7xl mx-auto">
       
-      {/* Dynamic Banner Carousel/Stack Area */}
+      {/* Dynamic Banner Stack Area */}
       {banners && banners.length > 0 && (
         <div className="mb-12 w-full flex flex-col gap-4">
           {banners.map((banner) => {
             const bannerContent = (
               <div className="w-full rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 relative transition-transform duration-200 hover:scale-[1.01] shadow-sm">
-                {/* Using object-contain and remove hardcoded heights 
-                  so the image fits completely inside its frame without cropping
+                {/* Using object-contain and max-h-[400px] so the image fits 
+                  completely inside its frame without any clipping or text overlays.
                 */}
                 <img 
                   src={urlFor(banner.image).url()} 
                   alt={banner.title || "Promo Banner"} 
                   className="w-full h-auto object-contain block mx-auto max-h-[400px]"
                 />
-                
-                {/* Optional overlay title gradient only if a text title exists */}
-                {banner.title && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent flex items-end p-6">
-                    <h2 className="text-white font-black text-lg md:text-2xl tracking-tight bg-black/30 backdrop-blur-sm px-4 py-1.5 rounded-xl">
-                      {banner.title}
-                    </h2>
-                  </div>
-                )}
               </div>
             );
 
@@ -77,7 +68,7 @@ export default async function HomePage() {
         </p>
       </div>
 
-      {/* Product Map Stack (Unchanged, completely preserving existing view settings) */}
+      {/* Product Map Stack */}
       {!products || products.length === 0 ? (
         <div className="text-center py-12 text-slate-500">No products found.</div>
       ) : (
