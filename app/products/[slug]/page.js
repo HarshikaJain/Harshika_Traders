@@ -3,13 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { client } from '../../../sanity/lib/client';
 import { urlFor } from '../../../sanity/lib/image';
 
-// Updated GROQ query to explicitly pull top-level images and nested highlights fields
+// GROQ query focusing strictly on variants, titles, and dynamic image mappings
 async function getProductData(slug) {
   const query = `*[_type == "product" && slug.current == $slug][0]{
     title,
     brand,
     category,
-    description,
     rating,
     images,
     variants[]{
@@ -46,11 +45,11 @@ export default function ProductPage({ params }) {
   if (loading) return <div className="pt-32 text-center text-slate-500 font-bold">Loading Storefront...</div>;
   if (!product) return <div className="pt-32 text-center font-bold text-red-500">Product Not Found</div>;
 
-  // Resolve current active variant mapping paths safely
+  // Safe mapping resolution paths
   const currentVariant = product.variants?.[selectedVariantIdx] || null;
   const currentColor = currentVariant?.colors?.[selectedColorIdx] || currentVariant?.colors?.[0] || null;
 
-  // Smart Image Fallback: Use color-specific image first. Fall back to main product images if color arrays are empty.
+  // Dynamic Image Logic: Uses nested color images first, falls back to parent product images array
   let displayImageSrc = null;
   if (currentColor?.colorImages?.[0]) {
     displayImageSrc = urlFor(currentColor.colorImages[0]).url();
@@ -58,14 +57,14 @@ export default function ProductPage({ params }) {
     displayImageSrc = urlFor(product.images[0]).url();
   }
 
-  // Fallback highlight list to update dynamically per storage variant choice
+  // Highlights updates instantly depending on selected storage variant array values
   const activeHighlights = currentVariant?.variantHighlights || [];
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pt-32 px-6 max-w-7xl mx-auto transition-colors duration-200">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         
-        {/* Left Side: Image display canvas */}
+        {/* Left Hand: Image Asset Canvas Wrapper */}
         <div className="flex flex-col gap-4">
           <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl p-8 aspect-square flex items-center justify-center border border-slate-100 dark:border-slate-800">
             {displayImageSrc ? (
@@ -80,7 +79,7 @@ export default function ProductPage({ params }) {
           </div>
         </div>
 
-        {/* Right Side: Configuration Panels */}
+        {/* Right Hand: Product Configurations Details Stack */}
         <div className="flex flex-col justify-start">
           <span className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">
             {product.brand}
@@ -89,7 +88,7 @@ export default function ProductPage({ params }) {
             {product.title} {currentColor?.colorName ? `(${currentColor.colorName})` : ""}
           </h1>
 
-          {/* Dynamic Price Display */}
+          {/* Pricing Module updates live based on selected variant combinations */}
           {currentColor && (
             <div className="flex items-baseline gap-3 mb-6">
               <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
@@ -103,7 +102,7 @@ export default function ProductPage({ params }) {
             </div>
           )}
 
-          {/* Storage & RAM Selection Matrix */}
+          {/* Storage & RAM Options Controls */}
           {product.variants && product.variants.length > 0 && (
             <div className="mb-6">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
@@ -115,7 +114,7 @@ export default function ProductPage({ params }) {
                     key={idx}
                     onClick={() => {
                       setSelectedVariantIdx(idx);
-                      setSelectedColorIdx(0); // Reset color index to first available item on variant switch
+                      setSelectedColorIdx(0); // Reset color index to 0 on storage swap
                     }}
                     className={`px-4 py-2.5 text-xs font-bold rounded-xl border transition-all ${
                       selectedVariantIdx === idx
@@ -130,7 +129,7 @@ export default function ProductPage({ params }) {
             </div>
           )}
 
-          {/* Color Option Swatches - Only renders if nested schema data exists for that configuration */}
+          {/* Nested Color Option Swatches - Only appears if structural data exists inside the active storage variant */}
           {currentVariant?.colors && currentVariant.colors.length > 0 && (
             <div className="mb-6">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
@@ -160,7 +159,7 @@ export default function ProductPage({ params }) {
             </div>
           )}
 
-          {/* Dynamic Variant Highlights - Changes bullets immediately based on selected storage array */}
+          {/* Product Highlights List - Filters and updates dynamically per chosen storage variant */}
           {activeHighlights.length > 0 && (
             <div className="mt-4 border-t border-slate-100 dark:border-slate-900 pt-6">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
