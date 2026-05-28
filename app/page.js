@@ -10,7 +10,10 @@ async function getHomeData() {
   }`;
   
   const bannerQuery = `*[_type == "banner" && isActive == true] {
-    _id, title, image, link
+    _id,
+    title,
+    image,
+    "slugPath": link->slug.current
   }`;
 
   const [products, banners] = await Promise.all([
@@ -29,21 +32,38 @@ export default async function HomePage() {
       
       {/* Dynamic Banner Carousel/Stack Area */}
       {banners && banners.length > 0 && (
-        <div className="mb-12 w-full overflow-hidden rounded-3xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-          {banners.map((banner) => (
-            <div key={banner._id} className="relative w-full aspect-[21/9] md:aspect-[3/1]">
-              <img 
-                src={urlFor(banner.image).url()} 
-                alt={banner.title || "Promo Banner"} 
-                className="w-full h-full object-cover"
-              />
-              {banner.title && (
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-8">
-                  <h2 className="text-white font-black text-xl md:text-3xl tracking-tight">{banner.title}</h2>
-                </div>
-              )}
-            </div>
-          ))}
+        <div className="mb-12 w-full flex flex-col gap-4">
+          {banners.map((banner) => {
+            const bannerContent = (
+              <div className="w-full rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 relative transition-transform duration-200 hover:scale-[1.01] shadow-sm">
+                {/* Using object-contain and remove hardcoded heights 
+                  so the image fits completely inside its frame without cropping
+                */}
+                <img 
+                  src={urlFor(banner.image).url()} 
+                  alt={banner.title || "Promo Banner"} 
+                  className="w-full h-auto object-contain block mx-auto max-h-[400px]"
+                />
+                
+                {/* Optional overlay title gradient only if a text title exists */}
+                {banner.title && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent flex items-end p-6">
+                    <h2 className="text-white font-black text-lg md:text-2xl tracking-tight bg-black/30 backdrop-blur-sm px-4 py-1.5 rounded-xl">
+                      {banner.title}
+                    </h2>
+                  </div>
+                )}
+              </div>
+            );
+
+            return banner.slugPath ? (
+              <Link key={banner._id} href={`/products/${banner.slugPath}`}>
+                {bannerContent}
+              </Link>
+            ) : (
+              <div key={banner._id}>{bannerContent}</div>
+            );
+          })}
         </div>
       )}
 

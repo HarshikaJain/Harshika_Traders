@@ -15,11 +15,12 @@ export default {
       options: { hotspot: true },
       validation: Rule => Rule.required(),
     },
-    {
+   {
       name: 'link',
-      title: 'Redirect Link (Optional)',
-      type: 'string',
-      description: 'e.g., /category/Mobile or external link'
+      title: 'Redirect Product Link',
+      type: 'reference',
+      to: [{ type: 'product' }],
+      description: 'Select the specific product this banner links to'
     },
     {
       name: 'isActive',
