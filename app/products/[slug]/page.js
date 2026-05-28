@@ -60,6 +60,10 @@ export default function ProductPage({ params }) {
   // Highlights updates instantly depending on selected storage variant array values
   const activeHighlights = currentVariant?.variantHighlights || [];
 
+  const handleBuyNow = () => {
+    alert(`Proceeding to checkout for ${product.title} (${currentVariant?.configuration} - ${currentColor?.colorName || 'Base Color'})`);
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pt-32 px-6 max-w-7xl mx-auto transition-colors duration-200">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -129,7 +133,7 @@ export default function ProductPage({ params }) {
             </div>
           )}
 
-          {/* Nested Color Option Swatches - Only appears if structural data exists inside the active storage variant */}
+          {/* Nested Color Option Swatches */}
           {currentVariant?.colors && currentVariant.colors.length > 0 && (
             <div className="mb-6">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
@@ -159,9 +163,9 @@ export default function ProductPage({ params }) {
             </div>
           )}
 
-          {/* Product Highlights List - Filters and updates dynamically per chosen storage variant */}
+          {/* Product Highlights List */}
           {activeHighlights.length > 0 && (
-            <div className="mt-4 border-t border-slate-100 dark:border-slate-900 pt-6">
+            <div className="mt-4 border-t border-slate-100 dark:border-slate-900 pt-6 mb-8">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
                 Product Highlights ({currentVariant?.configuration})
               </h3>
@@ -175,6 +179,21 @@ export default function ProductPage({ params }) {
               </ul>
             </div>
           )}
+
+          {/* Interactive Buy Now Button Stack */}
+          <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-900 flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={handleBuyNow}
+              disabled={currentColor?.isAvailable === false}
+              className={`w-full py-4 px-8 rounded-2xl font-black text-sm tracking-wide uppercase transition-all duration-200 shadow-xl shadow-blue-600/10 active:scale-[0.98] ${
+                currentColor?.isAvailable === false
+                  ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed shadow-none'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600'
+              }`}
+            >
+              {currentColor?.isAvailable === false ? 'Out of Stock' : 'Buy Now'}
+            </button>
+          </div>
 
         </div>
       </div>
