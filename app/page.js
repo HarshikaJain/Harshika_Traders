@@ -36,9 +36,6 @@ export default async function HomePage() {
           {banners.map((banner) => {
             const bannerContent = (
               <div className="w-full rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 relative transition-transform duration-200 hover:scale-[1.01] shadow-sm">
-                {/* Using object-contain and max-h-[400px] so the image fits 
-                  completely inside its frame without any clipping or text overlays.
-                */}
                 <img 
                   src={urlFor(banner.image)} 
                   alt={banner.title || "Promo Banner"} 
@@ -74,8 +71,18 @@ export default async function HomePage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => {
-            const imageAsset = product.images && product.images[0];
+            // Safely resolve nested fields from variants array -> colors array
             const baseVariant = product.variants && product.variants[0];
+            const baseColor = baseVariant?.colors && baseVariant.colors[0];
+
+            // 1. Resolve fallback image: Try root product image, then fall back to color configuration image
+            let imageAsset = product.images && product.images[0];
+            if (!imageAsset && baseColor?.colorImages && baseColor.colorImages[0]) {
+              imageAsset = baseColor.colorImages[0];
+            }
+
+            // 2. Resolve fallback price: Extract nested color configuration price point
+            const displayPrice = baseVariant?.price || baseColor?.price;
 
             return (
               <div key={product._id} className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
@@ -93,7 +100,7 @@ export default async function HomePage() {
                 </div>
                 <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
                   <span className="text-base font-bold text-slate-900 dark:text-white">
-                    {baseVariant?.price ? `₹${baseVariant.price.toLocaleString('en-IN')}` : 'TBD'}
+                    {displayPrice ? `₹${displayPrice.toLocaleString('en-IN')}` : 'TBD'}
                   </span>
                   {product.slug?.current && (
                     <Link href={`/products/${product.slug.current}`} className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 font-bold text-xs px-3 py-2 rounded-xl">
