@@ -40,7 +40,7 @@ export default async function HomePage() {
                   completely inside its frame without any clipping or text overlays.
                 */}
                 <img 
-                  src={urlFor(banner.image).url()} 
+                  src={urlFor(banner.image)} 
                   alt={banner.title || "Promo Banner"} 
                   className="w-full h-auto object-contain block mx-auto max-h-[400px]"
                 />
@@ -81,7 +81,7 @@ export default async function HomePage() {
               <div key={product._id} className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
                 <div className="bg-white dark:bg-slate-900 rounded-xl aspect-square flex items-center justify-center p-6 mb-4 overflow-hidden relative">
                   {imageAsset ? (
-                    <img src={urlFor(imageAsset).url()} alt={product.title} className="max-h-full max-w-full object-contain" />
+                    <img src={urlFor(imageAsset)} alt={product.title} className="max-h-full max-w-full object-contain" />
                   ) : (
                     <div className="text-xs text-slate-400">No Image Provided</div>
                   )}
