@@ -35,10 +35,11 @@ export default function CheckoutPage() {
         images,
         variants[]{
           configuration,
-          price
-        },
-        colors[]{
-          colorName
+          price,
+          colors[]{
+            colorName,
+            colorImages
+          }
         }
       }`;
 
@@ -55,34 +56,101 @@ export default function CheckoutPage() {
     fetchCheckoutDetails();
   }, [params]);
 
-  const handleSubmit = (e) => {
+  const currentVariant = product?.variants?.[variantIdx] || product?.variants?.[0];
+  const currentColor = currentVariant?.colors?.[colorIdx] || currentVariant?.colors?.[0];
+  const finalPrice = currentVariant?.price || currentColor?.price || 0;
+
+  let productImg = '/placeholder.jpg';
+  if (currentColor?.colorImages?.[0]) {
+    productImg = urlFor(currentColor.colorImages[0]);
+  } else if (product?.images?.[0]) {
+    productImg = urlFor(product.images[0]);
+  }
+
+  // Helper method to dynamically load Razorpay's Checkout script bundle
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
-    const currentVariant = product?.variants?.[variantIdx] || product?.variants?.[0];
-    const currentColor = product?.colors?.[colorIdx] || product?.colors?.[0];
-    const finalPrice = currentVariant?.price || 0;
-    const itemTitle = product?.title || "Premium Item";
+    // 1. Ensure the Razorpay script script element is properly mounted
+    const isScriptLoaded = await loadRazorpayScript();
+    if (!isScriptLoaded) {
+      alert("Failed to load Razorpay Checkout SDK. Are you connected to the internet?");
+      setLoading(false);
+      return;
+    }
 
-    // 1. Compose the message layout text block
-    const messageBody = `🚨 NEW ORDER RECEIVED - HARSHIKA TRADERS 🚨\n\n` +
-                        `📦 Item: ${itemTitle}\n` +
-                        `🔧 Config: ${currentVariant?.configuration || 'Base'}\n` +
-                        `🎨 Color: ${currentColor?.colorName || 'Default'}\n` +
-                        `💰 Total Price: ₹${finalPrice.toLocaleString('en-IN')}\n\n` +
-                        `👤 Customer: ${formData.fullName}\n` +
-                        `📞 Phone: ${formData.phone}\n` +
-                        `📍 Address: ${formData.address}, ${formData.city} - ${formData.pincode}`;
+    try {
+      // 2. Call your existing app/api/razorpay-order/route.js backend
+      const response = await fetch("/api/razorpay-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ price: finalPrice }),
+      });
 
-    const targetNumber = process.env.NEXT_PUBLIC_FATHER_PHONE_NUMBER || "+919893100789";
+      const data = await response.json();
 
-    // 2. Open WhatsApp click-to-chat web protocol directly from browser tab
-    const whatsappUrl = `https://wa.me/${targetNumber.replace('+', '')}?text=${encodeURIComponent(messageBody)}`;
-    window.open(whatsappUrl, '_blank');
+      if (!data.success) {
+        throw new Error(data.error || "Order token generation failed.");
+      }
 
-    setLoading(false);
-    alert("Order recorded locally! Opening WhatsApp communication receipt to notify administration logs.");
-    router.push('/');
+      // 3. Construct Razorpay's runtime gateway config
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Exposes test key to checkout client 
+        amount: data.amount, // Set explicitly via your backend calculation
+        currency: "INR",
+        name: "Harshika Traders",
+        description: `Checkout for ${product?.title || "Premium Unit"}`,
+        order_id: data.orderId, // Links securely back to your verified internal tracking ID
+        handler: function (paymentResponse) {
+          alert(`Order Successfully Processed!\nPayment ID: ${paymentResponse.razorpay_payment_id}`);
+          // Send user straight to their tracking space with data strings appended
+          router.push(`/order-tracking?payment_id=${paymentResponse.razorpay_payment_id}`);
+        },
+        prefill: {
+          name: formData.fullName,
+          contact: formData.phone,
+        },
+        theme: {
+          color: "#2563eb", // Primary branding color hex matching tailwind's blue-600
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+          }
+        }
+      };
+
+      const razorpayWindowInstance = new window.Razorpay(options);
+      
+      razorpayWindowInstance.on("payment.failed", function (failResponse) {
+        console.error("Payment decline exception:", failResponse.error.description);
+        alert(`Payment Failed: ${failResponse.error.description}`);
+        setLoading(false);
+      });
+
+      // 4. Fire open the secure screen container
+      razorpayWindowInstance.open();
+
+    } catch (err) {
+      console.error("Razorpay integration initialization crash:", err);
+      alert(err.message || "Something went wrong structural wise initializing your checkouts.");
+      setLoading(false);
+    }
   };
 
   if (fetching) {
@@ -94,10 +162,6 @@ export default function CheckoutPage() {
   }
 
   const displayTitle = product?.title || "Premium Tech Unit";
-  const currentVariant = product?.variants?.[variantIdx] || product?.variants?.[0];
-  const currentColor = product?.colors?.[colorIdx] || product?.colors?.[0];
-  const finalPrice = currentVariant?.price || 0;
-  const productImg = product?.images?.[0] ? urlFor(product.images[0]).url() : '/placeholder.jpg';
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-24 px-6 pb-20 transition-colors">
@@ -173,7 +237,7 @@ export default function CheckoutPage() {
                 type="submit"
                 className="w-full py-5 rounded-2xl bg-blue-600 text-white font-black uppercase text-xs tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95 disabled:opacity-50"
               >
-                {loading ? 'Confirming Order Verification...' : 'Place Order via WhatsApp'}
+                {loading ? 'Opening Gateway Container...' : 'Proceed to Payment'}
               </button>
             </div>
           </form>

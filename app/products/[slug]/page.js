@@ -69,7 +69,6 @@ export default function ProductPage({ params }) {
   const currentVariant = product.variants?.[selectedVariantIdx] || null;
   const currentColor = currentVariant?.colors?.[selectedColorIdx] || currentVariant?.colors?.[0] || null;
 
-  // FIXED: Removed the duplicate .url() chain method execution
   let displayImageSrc = null;
   if (currentColor?.colorImages?.[0]) {
     displayImageSrc = urlFor(currentColor.colorImages[0]);
@@ -78,6 +77,35 @@ export default function ProductPage({ params }) {
   }
 
   const activeHighlights = currentVariant?.variantHighlights || [];
+
+  // Central function to complete order creation via backend API routing
+  const sendOrderToBackend = async (finalPaymentMethod, gatewayPaymentId = null) => {
+    const response = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerName,
+        customerPhone,
+        customerAddress,
+        paymentMethod: finalPaymentMethod,
+        razorpayPaymentId: gatewayPaymentId,
+        productTitle: product.title.replace(/[()]/g, ''),
+        productBrand: product.brand,
+        variantConfig: currentVariant?.configuration || 'Standard',
+        colorName: currentColor?.colorName?.trim() || 'Base',
+        price: currentColor?.price || 0,
+        fatherNumber: FATHER_PHONE_NUMBER
+      })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      setIsModalOpen(false);
+      window.location.href = `/track/${data.trackingId}`;
+    } else {
+      alert(`Order Processing Failed: ${data.error}`);
+    }
+  };
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
@@ -88,36 +116,68 @@ export default function ProductPage({ params }) {
 
     setIsSubmitting(true);
 
-    try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerName,
-          customerPhone,
-          customerAddress,
-          paymentMethod,
-          productTitle: product.title.replace(/[()]/g, ''),
-          productBrand: product.brand,
-          variantConfig: currentVariant?.configuration || 'Standard',
-          colorName: currentColor?.colorName?.trim() || 'Base',
-          price: currentColor?.price || 0,
-          fatherNumber: FATHER_PHONE_NUMBER
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setIsModalOpen(false);
-        window.location.href = `/track/${data.trackingId}`;
-      } else {
-        alert(`Notification Pipeline Failed: ${data.error}`);
+    // Flow A: If user chose Cash on Delivery, bypass gateway scripts completely
+    if (paymentMethod === "Cash on Delivery (COD)") {
+      try {
+        await sendOrderToBackend("Cash on Delivery (COD)");
+      } catch (err) {
+        console.error(err);
+        alert("An unexpected error occurred while communicating with notification servers.");
+      } finally {
+        setIsSubmitting(false);
       }
+      return;
+    }
+
+    // Flow B: Digital Payment via Razorpay Integration
+    if (!window.Razorpay) {
+      alert("Payment engine loading... Please click 'Confirm Order' again in 2 seconds.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    const itemPrice = currentColor?.price || 0;
+    const cleanTitle = product.title.replace(/[()]/g, '');
+
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Dynamically pulled from .env.local without failing placeholders
+      amount: itemPrice * 100, // Amount converted into paisa subunits
+      currency: "INR",
+      name: "Harshika Traders",
+      description: `${product.brand} ${cleanTitle} - ${currentVariant?.configuration || 'Standard'} (${currentColor?.colorName || 'Base'})`,
+      image: "/favicon.ico", 
+      handler: async function (response) {
+        try {
+          await sendOrderToBackend(`Razorpay (${paymentMethod})`, response.razorpay_payment_id);
+        } catch (err) {
+          console.error(err);
+          alert("Error verifying processing authorization parameters.");
+        } finally {
+          setIsSubmitting(false);
+        }
+      },
+      prefill: {
+        name: customerName,
+        contact: customerPhone,
+      },
+      notes: {
+        address: customerAddress
+      },
+      theme: {
+        color: "#2563eb" 
+      },
+      modal: {
+        ondismiss: function() {
+          setIsSubmitting(false);
+        }
+      }
+    };
+
+    try {
+      const paymentOverlay = new window.Razorpay(options);
+      paymentOverlay.open();
     } catch (err) {
-      console.error(err);
-      alert("An unexpected error occurred while communicating with notification servers.");
-    } finally {
+      console.error("Failed to construct layout frame script:", err);
       setIsSubmitting(false);
     }
   };
@@ -145,13 +205,19 @@ export default function ProductPage({ params }) {
           </h1>
 
           {currentColor && (
-            <div className="flex items-baseline gap-3 mb-6">
-              <span className="text-3xl font-extrabold text-slate-900 dark:text-white">₹{currentColor.price.toLocaleString('en-IN')}</span>
-              {currentColor.originalPrice && (
-                <span className="text-base text-slate-400 dark:text-slate-500 line-through">₹{currentColor.originalPrice.toLocaleString('en-IN')}</span>
-              )}
-            </div>
-          )}
+  <div className="flex items-baseline gap-3 mb-6">
+    <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
+      ₹{currentColor.price.toLocaleString('en-IN')}
+    </span>
+    
+    {/* Only show originalPrice if it exists AND is greater than the current price */}
+    {currentColor.originalPrice && currentColor.originalPrice > currentColor.price && (
+      <span className="text-base text-slate-400 dark:text-slate-500 line-through">
+        ₹{currentColor.originalPrice.toLocaleString('en-IN')}
+      </span>
+    )}
+  </div>
+)}
 
           {/* Variants */}
           {product.variants && product.variants.length > 0 && (
@@ -183,7 +249,6 @@ export default function ProductPage({ params }) {
                     className={`p-1 rounded-xl border-2 transition-all ${selectedColorIdx === idx ? 'border-blue-600' : 'border-transparent'}`}
                   >
                     <div className="w-14 h-14 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-700">
-                      {/* FIXED: Removed duplicate .url() from thumbnails as well */}
                       {color.colorImages?.[0] && <img src={urlFor(color.colorImages[0])} alt="" className="w-12 h-12 object-contain" />}
                     </div>
                   </button>
@@ -258,7 +323,7 @@ export default function ProductPage({ params }) {
 
               <div className="pt-2">
                 <button type="submit" disabled={isSubmitting} className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-blue-600/20 disabled:bg-slate-400">
-                  {isSubmitting ? 'Processing Automation...' : 'Confirm Order'}
+                  {isSubmitting ? 'Processing Payment Overlay...' : 'Confirm Order'}
                 </button>
               </div>
             </form>

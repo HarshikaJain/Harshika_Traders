@@ -1,4 +1,5 @@
 import "./globals.css";
+import Script from 'next/script';
 import Navbar from "../components/Navbar";
 import { SanityLive } from "../sanity/lib/live"; // Add this import
 
@@ -17,6 +18,12 @@ export default function RootLayout({ children }) {
         <Navbar />
         {children}
         <SanityLive /> {/* Add this right before the closing body tag */}
+        
+        {/* Load Razorpay Standard Checkout SDK securely onto the browser frame */}
+        <Script 
+          src="https://checkout.razorpay.com/v1/checkout.js" 
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );
