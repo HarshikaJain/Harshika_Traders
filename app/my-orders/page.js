@@ -1,17 +1,14 @@
-import { getUserOrders } from '@/sanity/lib/sanity.queries';
+import { getUserOrders } from '../../sanity/lib/sanity.queries';
 
 export default async function MyOrdersPage() {
-  // Define the user email (ensure this matches the format in your Sanity database)
   const userEmail = "harshika@example.com"; 
-  
-  // Fetch the orders
   const orders = await getUserOrders(userEmail);
 
   return (
     <main className="min-h-screen p-10 pt-24">
       <h1 className="text-3xl font-black mb-8">My Orders</h1>
       
-      {!orders || orders.length === 0 ? (
+      {(!orders || orders.length === 0) ? (
         <p className="text-slate-600">No orders found.</p>
       ) : (
         <div className="space-y-4">
