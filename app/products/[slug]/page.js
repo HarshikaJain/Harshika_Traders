@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { client } from '../../../sanity/lib/client';
 import { urlFor } from '../../../sanity/lib/image';
+import { useRouter } from 'next/navigation';
 
 export default function ProductPage({ params }) {
+  const router = useRouter();
   const [product, setProduct] = useState(null);
   const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
@@ -98,8 +100,10 @@ export default function ProductPage({ params }) {
           </div>
 
           {/* 7. Buy Now Button */}
-          <button className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 transition-colors">
-            Buy Now
+         <button 
+          onClick={() => router.push(`/checkout?product=${encodeURIComponent(product.title + " - " + v.configuration + " (" + c.colorName + ")")}`)}
+          className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 transition-colors">
+          Buy Now
           </button>
         </div>
       </div>
