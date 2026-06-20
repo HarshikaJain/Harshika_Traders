@@ -1,15 +1,9 @@
-"use client"; 
-import { useState } from 'react';
 import { client } from '../../sanity/lib/client';
+import OrderButton from '../../components/OrderButton'; // Import your new client component
 
 export default async function Checkout({ searchParams }) {
   const settings = await client.fetch(`*[_type == "checkoutSettings"][0]`);
   const productName = searchParams.product || "Selected Item";
-
-  const handleOrder = () => {
-    const message = `Hello, I would like to buy: ${productName}. Please confirm availability and shipping to my address.`;
-    window.open(`https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
-  };
 
   return (
     <div className="max-w-2xl mx-auto pt-32 px-6">
@@ -23,12 +17,8 @@ export default async function Checkout({ searchParams }) {
           <p>{settings?.paymentMethods}</p>
         </div>
 
-        <button 
-          onClick={handleOrder}
-          className="w-full py-4 bg-green-600 text-white rounded-2xl font-black hover:bg-green-700 transition-colors"
-        >
-          Confirm Order via WhatsApp
-        </button>
+        {/* Use the client component here */}
+        <OrderButton productName={productName} whatsappNumber={settings?.whatsappNumber} />
       </div>
     </div>
   );
