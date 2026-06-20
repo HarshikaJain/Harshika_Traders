@@ -1,7 +1,7 @@
 import { defineConfig } from 'sanity';
 import { structureTool } from 'sanity/structure';
 import { visionTool } from '@sanity/vision';
-import { schemaTypes } from './sanity/schemaTypes'; // This now points to your array
+import { schemaTypes } from './sanity/schemaTypes'; 
 
 export default defineConfig({
   name: 'default',
@@ -10,7 +10,7 @@ export default defineConfig({
   dataset: 'production',
   basePath: '/admin', 
   schema: {
-    types: schemaTypes, // This is now correctly receiving an array
+    types: schemaTypes,
   },
   plugins: [
     structureTool(),

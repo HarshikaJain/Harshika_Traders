@@ -1,6 +1,7 @@
 import product from './product';
 import banner from './banner';
 import achievement from './achievement';
+import storeSettings from './storeSettings';
 
-// Export as an array, not an object
-export const schemaTypes = [product, banner, achievement];
+// Export as a simple array
+export const schemaTypes = [product, banner, achievement, storeSettings];
