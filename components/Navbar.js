@@ -16,7 +16,7 @@ export default function Navbar() {
     { name: 'About Us', href: '/aboutus' },
     { name: 'Achievements', href: '/achievements' },
     { name: 'Contact Us', href: '/contactus' },
-    { name: 'My Orders ', href: '/my-orders' } 
+    { name: 'My Orders', href: '/my-orders' } 
   ];
 
   return (
