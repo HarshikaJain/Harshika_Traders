@@ -1,70 +1,64 @@
-"use client";
-import React, { Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+'use client';
+import React, { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 function TrackingContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const paymentId = searchParams.get('payment_id') || 'MOCK_PAYMENT_ID';
+  const paymentId = searchParams.get('payment_id');
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const steps = ['Confirmed', 'Shipped', 'Out for Delivery', 'Delivered'];
+
+  useEffect(() => {
+    if (paymentId) {
+      supabase.from('orders').select('*').eq('razorpay_payment_id', paymentId).single()
+        .then(({ data }) => { setOrder(data); setLoading(false); });
+    }
+  }, [paymentId]);
+
+  if (loading) return <div className="text-center pt-32">Loading...</div>;
+  if (!order) return <div className="text-center pt-32">Order not found.</div>;
+
+  const currentStepIndex = steps.indexOf(order.status || 'Confirmed');
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center pt-24 px-6 pb-20 transition-colors">
-      <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 md:p-10 shadow-xl border border-slate-100 dark:border-slate-800 text-center space-y-6">
-        
-        {/* Animated Success Checkmark */}
-        <div className="mx-auto w-20 h-20 bg-green-50 dark:bg-green-950/30 rounded-full flex items-center justify-center text-green-500 animate-bounce">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-10 h-10">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
+    <main className="min-h-screen bg-slate-50 pt-32 px-6 pb-20">
+      <div className="max-w-md mx-auto bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+        <h1 className="text-xl font-black mb-6">ORDER DETAILS</h1>
+        <div className="bg-slate-50 p-4 rounded-xl mb-8 text-sm">
+          <p className="font-bold">{order.product_name}</p>
+          <p className="text-slate-500 mt-1">Booked at: {new Date(order.created_at).toLocaleString()}</p>
         </div>
 
-        <div className="space-y-2">
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">ORDER CONFIRMED!</h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">
-            Thank you for shopping with Harshika Traders. Your payment was processed successfully.
-          </p>
-        </div>
-
-        {/* Transaction Receipt Box */}
-        <div className="bg-slate-50 dark:bg-slate-950 rounded-2xl p-4 text-left border border-slate-100 dark:border-slate-800/50 space-y-2">
-          <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
-            <span>Status</span>
-            <span className="text-green-500 font-black">Paid</span>
-          </div>
-          <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-wider items-center">
-            <span>Payment ID</span>
-            <span className="text-slate-700 dark:text-slate-300 font-mono text-[11px] select-all bg-slate-200/50 dark:bg-slate-800 px-2 py-0.5 rounded-md">
-              {paymentId}
-            </span>
-          </div>
-          <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
-            <span>Delivery City</span>
-            <span className="text-slate-700 dark:text-slate-300">Ratlam</span>
-          </div>
-        </div>
-
-        <div className="pt-2">
-          <button
-            onClick={() => router.push('/')}
-            className="w-full py-4 rounded-2xl bg-blue-600 text-white font-black uppercase text-xs tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95"
-          >
-            Continue Shopping
-          </button>
+        <h2 className="text-lg font-black mb-6">TRACKING STATUS</h2>
+        <div className="relative border-l-2 border-slate-200 ml-3 space-y-8">
+          {steps.map((step, index) => {
+            const isCompleted = index <= currentStepIndex;
+            return (
+              <div key={step} className="relative pl-8">
+                {/* Green Circle Indicator */}
+                <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center ${isCompleted ? 'bg-green-500' : 'bg-slate-200'}`}>
+                  {isCompleted && <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/></svg>}
+                </div>
+                <div className={isCompleted ? 'text-green-600 font-bold' : 'text-slate-400'}>
+                  {step}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </main>
   );
 }
 
-// Next.js App Router requires Suspense for hook segments like useSearchParams
 export default function OrderTrackingPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <p className="text-slate-400 font-bold tracking-widest animate-pulse">LOADING RECEIPT...</p>
-      </div>
-    }>
-      <TrackingContent />
-    </Suspense>
-  );
+  return <Suspense><TrackingContent /></Suspense>;
 }
