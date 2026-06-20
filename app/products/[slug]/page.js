@@ -100,16 +100,13 @@ export default function ProductPage({ params }) {
           </div>
 
           {/* 7. Buy Now Button */}
-         <button 
+<button 
   onClick={() => {
-    // Construct the query string
-    const productInfo = `${product.title} | ${v.configuration} | ${c.colorName}`;
-    const price = c.price;
-    
-    // Push to checkout with query parameters
-    router.push(`/checkout?product=${encodeURIComponent(productInfo)}&price=${price}`);
+    const pName = encodeURIComponent(`${product.title} - ${v.configuration} (${c.colorName})`);
+    const pPrice = encodeURIComponent(c.price);
+    router.push(`/checkout?product=${pName}&price=${pPrice}`);
   }}
-  className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 transition-colors"
+  className="w-full py-4 mt-6 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 transition-all shadow-lg active:scale-95"
 >
   Buy Now
 </button>
