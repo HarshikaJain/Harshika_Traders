@@ -1,7 +1,6 @@
-import product from './product'; // Your existing untouchable product schema
-import banner from './banner';   
-import achievement from './achievement'; // Import the new achievement schema
+import product from './product';
+import banner from './banner';
+import achievement from './achievement';
 
-export const schemaTypes = {
-  types: [product, banner, achievement],
-};
+// Export as an array, not an object
+export const schemaTypes = [product, banner, achievement];
